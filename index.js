@@ -135,6 +135,14 @@ app.patch("/api/events/:id", async (req, res) => {
   res.send(result);
 });
 
+app.delete("/api/events/:id", async (req, res) => {
+  const id = req.params.id;
+  const query = { _id: new ObjectId(id) };
+  const result = await events.deleteOne(query);
+  res.send(result);
+  console.log(result);
+});
+
 app.listen(port, () => {
   console.log(`Surver running at ${port} port`);
 });
