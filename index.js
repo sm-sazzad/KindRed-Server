@@ -89,6 +89,21 @@ app.get("/api/joined/:id", async (req, res) => {
   res.send({ isJoined: !!result });
 });
 
+//post joined event
+app.post("/api/joined", async (req, res) => {
+  const newJoined = req.body;
+  // Ensure we don't save event's _id as document's _id so multiple users can join the same event
+  if (newJoined._id) {
+    if (!newJoined.eventId) {
+      newJoined.eventId = newJoined._id;
+    }
+    delete newJoined._id;
+  }
+  const result = await joinedEvents.insertOne(newJoined);
+  res.send(result);
+  console.log(result);
+});
+
 app.listen(port, () => {
   console.log(`Surver running at ${port} port`);
 });
