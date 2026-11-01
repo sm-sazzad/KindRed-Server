@@ -117,6 +117,24 @@ app.delete("/api/joined/:id", async (req, res) => {
   console.log(result);
 });
 
+app.post("/api/events", async (req, res) => {
+  const newEvent = req.body;
+  const result = await events.insertOne(newEvent);
+  res.send(result);
+});
+
+app.patch("/api/events/:id", async (req, res) => {
+  const updatedData = req.body;
+  const filter = { _id: new ObjectId(req.params.id) };
+  const updatedDoc = {
+    $set: {
+      ...updatedData,
+    },
+  };
+  const result = await events.updateOne(filter, updatedDoc);
+  res.send(result);
+});
+
 app.listen(port, () => {
   console.log(`Surver running at ${port} port`);
 });
