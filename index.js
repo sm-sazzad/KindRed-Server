@@ -30,6 +30,17 @@ app.get("/", (req, res) => {
   res.send("Wellcome to KindRed API");
 });
 
+app.get("/api/events", async (req, res) => {
+  const result = await events.find({}).sort({ eventDate: 1 }).toArray();
+  res.send(result);
+});
+
+app.get("/api/events/email/:email", async (req, res) => {
+  const { email } = req.params;
+  const result = await events.find({ email }).sort({ eventDate: 1 }).toArray();
+  res.send(result);
+});
+
 app.listen(port, () => {
   console.log(`Surver running at ${port} port`);
 });
