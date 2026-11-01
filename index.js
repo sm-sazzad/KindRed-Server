@@ -41,6 +41,24 @@ app.get("/api/events/email/:email", async (req, res) => {
   res.send(result);
 });
 
+// homepage event show
+app.get("/api/featured", async (req, res) => {
+  const now = new Date();
+  const today = [
+    now.getFullYear(),
+    String(now.getMonth() + 1).padStart(2, "0"),
+    String(now.getDate()).padStart(2, "0"),
+  ].join("-");
+
+  const result = await events
+    .find({ eventDate: { $gte: today } })
+    .sort({ eventDate: 1 })
+    .limit(6)
+    .toArray();
+
+  res.send(result);
+});
+
 app.listen(port, () => {
   console.log(`Surver running at ${port} port`);
 });
