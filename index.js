@@ -104,6 +104,19 @@ app.post("/api/joined", async (req, res) => {
   console.log(result);
 });
 
+// delete joined event by id and email
+app.delete("/api/joined/:id", async (req, res) => {
+  const { id } = req.params;
+  const { email } = req.query;
+  const query = {
+    $or: [{ eventId: id }, { _id: id }],
+    ...(email ? { email } : {}),
+  };
+  const result = await joinedEvents.deleteOne(query);
+  res.send(result);
+  console.log(result);
+});
+
 app.listen(port, () => {
   console.log(`Surver running at ${port} port`);
 });
