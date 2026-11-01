@@ -71,6 +71,24 @@ app.get("/api/events/:id", async (req, res) => {
   res.send(result);
 });
 
+//get joined event
+app.get("/api/joined", async (req, res) => {
+  const result = await joinedEvents.find({}).toArray();
+  res.send(result);
+});
+
+//get joined event by id and email
+app.get("/api/joined/:id", async (req, res) => {
+  const { id } = req.params;
+  const { email } = req.query;
+  const query = {
+    $or: [{ eventId: id }, { _id: id }],
+    ...(email ? { email } : {}),
+  };
+  const result = await joinedEvents.findOne(query);
+  res.send({ isJoined: !!result });
+});
+
 app.listen(port, () => {
   console.log(`Surver running at ${port} port`);
 });
