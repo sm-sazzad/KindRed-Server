@@ -59,6 +59,18 @@ app.get("/api/featured", async (req, res) => {
   res.send(result);
 });
 
+app.get("/api/events/category/:categoryId", async (req, res) => {
+  const { categoryId } = req.params;
+  const result = await events.find({ categoryId }).toArray();
+  res.send(result);
+});
+
+app.get("/api/events/:id", async (req, res) => {
+  const id = req.params.id;
+  const result = await events.findOne({ _id: new ObjectId(id) });
+  res.send(result);
+});
+
 app.listen(port, () => {
   console.log(`Surver running at ${port} port`);
 });
