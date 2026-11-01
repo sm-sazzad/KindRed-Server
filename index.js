@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import "dotenv/config";
 import { MongoClient, ObjectId } from "mongodb";
+import { jwtVerify, createRemoteJWKSet } from "jose";
 
 const port = process.env.PORT || 5000;
 const app = express();
@@ -26,6 +27,31 @@ const database = client.db("KindRed");
 const events = database.collection("events");
 const joinedEvents = database.collection("joinedEvents");
 
+const verifyToken = async (req, res, next) => {
+  const authHeader = req?.headers.authorization;
+  if (!authHeader) {
+    return res.status(401).json({ message: "Authorization header missing" });
+  }
+
+  console.log(authHeader);
+
+  const token = authHeader.split(" ")[1];
+  if (!token) {
+    return res.status(401).json({ message: "Token missing" });
+  }
+
+  try {
+    const jwks = createRemoteJWKSet(
+      new URL(`${process.env.NEXT_PUBLIC_CLIENT_URL}/api/auth/jwks`),
+    );
+    const { payload } = await jwtVerify(token, jwks);
+    req.user = payload;
+    next();
+  } catch (err) {
+    return res.status(401).json({ message: "Invalid token" });
+  }
+};
+
 app.get("/", (req, res) => {
   res.send("Wellcome to KindRed API");
 });
@@ -35,7 +61,7 @@ app.get("/api/events", async (req, res) => {
   res.send(result);
 });
 
-app.get("/api/events/email/:email", async (req, res) => {
+app.get("/api/events/email/:email", verifyToken, async (req, res) => {
   const { email } = req.params;
   const result = await events.find({ email }).sort({ eventDate: 1 }).toArray();
   res.send(result);
@@ -72,13 +98,13 @@ app.get("/api/events/:id", async (req, res) => {
 });
 
 //get joined event
-app.get("/api/joined", async (req, res) => {
+app.get("/api/joined", verifyToken, async (req, res) => {
   const result = await joinedEvents.find({}).toArray();
   res.send(result);
 });
 
 //get joined event by id and email
-app.get("/api/joined/:id", async (req, res) => {
+app.get("/api/joined/:id", verifyToken, async (req, res) => {
   const { id } = req.params;
   const { email } = req.query;
   const query = {
@@ -90,7 +116,7 @@ app.get("/api/joined/:id", async (req, res) => {
 });
 
 //post joined event
-app.post("/api/joined", async (req, res) => {
+app.post("/api/joined", verifyToken, async (req, res) => {
   const newJoined = req.body;
   // Ensure we don't save event's _id as document's _id so multiple users can join the same event
   if (newJoined._id) {
@@ -105,7 +131,7 @@ app.post("/api/joined", async (req, res) => {
 });
 
 // delete joined event by id and email
-app.delete("/api/joined/:id", async (req, res) => {
+app.delete("/api/joined/:id", verifyToken, async (req, res) => {
   const { id } = req.params;
   const { email } = req.query;
   const query = {
@@ -117,13 +143,13 @@ app.delete("/api/joined/:id", async (req, res) => {
   console.log(result);
 });
 
-app.post("/api/events", async (req, res) => {
+app.post("/api/events", verifyToken, async (req, res) => {
   const newEvent = req.body;
   const result = await events.insertOne(newEvent);
   res.send(result);
 });
 
-app.patch("/api/events/:id", async (req, res) => {
+app.patch("/api/events/:id", verifyToken, async (req, res) => {
   const updatedData = req.body;
   const filter = { _id: new ObjectId(req.params.id) };
   const updatedDoc = {
@@ -135,7 +161,7 @@ app.patch("/api/events/:id", async (req, res) => {
   res.send(result);
 });
 
-app.delete("/api/events/:id", async (req, res) => {
+app.delete("/api/events/:id", verifyToken, async (req, res) => {
   const id = req.params.id;
   const query = { _id: new ObjectId(id) };
   const result = await events.deleteOne(query);
@@ -144,5 +170,5 @@ app.delete("/api/events/:id", async (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`Surver running at ${port} port`);
+  console.log(`Server running at ${port} port`);
 });
