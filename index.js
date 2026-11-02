@@ -4,7 +4,7 @@ import "dotenv/config";
 import { MongoClient, ObjectId } from "mongodb";
 import { jwtVerify, createRemoteJWKSet } from "jose";
 
-const port = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5000;
 const app = express();
 
 app.use(cors());
@@ -32,8 +32,6 @@ const verifyToken = async (req, res, next) => {
   if (!authHeader) {
     return res.status(401).json({ message: "Authorization header missing" });
   }
-
-  console.log(authHeader);
 
   const token = authHeader.split(" ")[1];
   if (!token) {
@@ -69,12 +67,12 @@ app.get("/api/events/email/:email", verifyToken, async (req, res) => {
 
 // homepage event show
 app.get("/api/featured", async (req, res) => {
-  const now = new Date();
-  const today = [
-    now.getFullYear(),
-    String(now.getMonth() + 1).padStart(2, "0"),
-    String(now.getDate()).padStart(2, "0"),
-  ].join("-");
+  const today = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Dhaka",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
 
   const result = await events
     .find({ eventDate: { $gte: today } })
@@ -99,7 +97,7 @@ app.get("/api/events/:id", async (req, res) => {
 
 //get joined event
 app.get("/api/joined", verifyToken, async (req, res) => {
-  const result = await joinedEvents.find({}).toArray();
+  const result = await joinedEvents.find({}).sort({ eventDate: 1 }).toArray();
   res.send(result);
 });
 
@@ -127,7 +125,6 @@ app.post("/api/joined", verifyToken, async (req, res) => {
   }
   const result = await joinedEvents.insertOne(newJoined);
   res.send(result);
-  console.log(result);
 });
 
 // delete joined event by id and email
@@ -140,7 +137,6 @@ app.delete("/api/joined/:id", verifyToken, async (req, res) => {
   };
   const result = await joinedEvents.deleteOne(query);
   res.send(result);
-  console.log(result);
 });
 
 app.post("/api/events", verifyToken, async (req, res) => {
@@ -166,9 +162,10 @@ app.delete("/api/events/:id", verifyToken, async (req, res) => {
   const query = { _id: new ObjectId(id) };
   const result = await events.deleteOne(query);
   res.send(result);
-  console.log(result);
 });
 
-app.listen(port, () => {
-  console.log(`Server running at ${port} port`);
+app.listen(PORT, () => {
+  console.log(`Server running at ${PORT} port`);
 });
+
+export default app;
