@@ -193,7 +193,7 @@ http://localhost:5000
 
 **Sheikh Md Sazzad Hossain**
 
-- GitHub: [@sm-sazzad](https://github.com/sm-sazzad)
+- Portfolio: [Sazzad Hossain](https://sazzad-dev.vercel.app/)
 
 ---
 
